@@ -85,14 +85,76 @@ public:
             return i -> data;
         }
 
-        T *operator->() const;
-        bool operator==(const Iterator &other) const;
-        bool operator!=(const Iterator &o) const;
-        Iterator &operator++();
-        Iterator operator++(int);
-        Iterator &operator--();
-        Iterator operator--(int);
+        T *operator->() const {
+            return &i -> data;
+        }
+
+        T &operator[](int j) {
+            return i[j].data();
+        }
+
+        bool operator==(const Iterator &other) const {
+            return i == other.data;
+        }
+
+        bool operator!=(const Iterator &other) const {
+            return i != other.data;
+        }
+        
+        bool operator<(const Iterator &other) const {
+            return i < other.data();
+        }       
+        
+        bool operator<=(const Iterator &other) const {
+            return i <= other.data();
+        }
+
+        bool operator>(const Iterator &other) const {
+            return i > other.data(); 
+        }
+
+        bool operator>=(const Iterator &other) const {
+            return i >= other.data(); 
+        }
+
+        Iterator &operator++() {
+            i++;
+            return *this;
+        }
+        
+        Iterator operator++(int) {
+            Node<T> n = i;
+            i++;
+            return n;
+        }
+        
+        Iterator &operator--() {
+            i--;
+            return *this;
+        }
+
+        Iterator operator--(int) {
+            Node<T> n = i;
+            i--;
+            return n;
+        }
+
+        Iterator &operator-=(int j) {
+            i-=j; return *this; }
+
+        Iterator &operator+=(int j) { 
+            i+=j; return *this; }
+
+        Iterator operator+(int j) const { 
+            return Iterator(i+j); }
+
+        Iterator operator-(int j) const { 
+            return Iterator(i-j); }
+
+        int operator-(Iterator j) const { 
+            return int(i - j.i); }
     };
+
 
     Iterator  begin() {
        return Iterator(first);
