@@ -1,14 +1,13 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
 #include <iterator>
 
 template <typename T>
 struct Node {
     T data;
-    struct Node<T> *next;
-    struct Node<T> *prev;
+    Node<T> *next;
+    Node<T> *prev;
 
 };
 
@@ -22,20 +21,6 @@ private:
     int lenght;
     
 
-
-    Node<T>* ReturnEl( int index) {
-        Node<T>* el = first;
-       
-        for (int i = 0; i < index; i++)
-            el  = el -> next;
-
-        return el;
-    }
-
-
-    
-    
-
 public:
 
     BidirList() {
@@ -46,8 +31,8 @@ public:
 
     BidirList(const BidirList& obj) {
         ClearList();
-        Node<T>* el = obj.first;
-        while (el!= nullptr) {
+        Node<T>* el = first;
+        while (el != nullptr) {
             AddNodeToBegin(el-> data);
             el = el -> next;
         }
@@ -63,149 +48,151 @@ public:
     ~BidirList() {
       int n = lenght;
       for(int i = 0; i < n; i++)
-          DeleteNode(0);
+          ClearList();
     }
 
     
-    
-   // template <typename T>
-    class Iterator { 
-    public:
-        Node<T> i;
-        typedef std::bidirectional_iterator_tag iterator_cathegory;
-        typedef T value_type;
-        typedef T *pointer;
-        typedef T &reference;
+class  Iterator {
+        friend class BidirList<T>;
+private:
+        Node<T>* m_node;
+        BidirList<T>* m_list;
+       
+        Iterator() : m_list(nullptr), m_node (nullptr) {}
+       
 
-        inline Iterator() : i(0) {}
-        inline Iterator(Node<T> n) : i(n) {};
-        inline Iterator(const Iterator &obj) : i(obj.i) {};
+public:
+
+        Iterator(const Iterator &obj) : m_node(obj.m_node) {};
+        Iterator(BidirList<T>* list, Node<T>* node) : m_list(list), m_node(node) {};
+
+        Iterator next_it() const {
+        if (m_node != nullptr)
+            return Iterator(m_list, m_node->next);
+        return *this;
+        }
 
         T &operator*() const {
-            return i -> data;
+            return m_node -> data;
         }
 
         T *operator->() const {
-            return &i -> data;
+            return &m_node  -> data;
         }
 
         T &operator[](int j) {
-            return i[j].data();
+            return m_node [j].data();
         }
 
         bool operator==(const Iterator &other) const {
-            return i == other.data;
+            return m_list ==  other.m_list && m_node ==  other.m_node;
         }
 
         bool operator!=(const Iterator &other) const {
-            return i != other.data;
+            return !(*this == other);
         }
         
         bool operator<(const Iterator &other) const {
-            return i < other.data();
+            return m_node < other.m_node;
         }       
         
         bool operator<=(const Iterator &other) const {
-            return i <= other.data();
+            return m_node <= other.m_node;
         }
 
         bool operator>(const Iterator &other) const {
-            return i > other.data(); 
+            return  m_node > other.m_node; 
         }
 
         bool operator>=(const Iterator &other) const {
-            return i >= other.data(); 
+            return  m_node >= other.m_node; 
         }
 
         Iterator &operator++() {
-            i++;
+            if (m_node != nullptr)
+                m_node = m_node -> next;
             return *this;
         }
         
         Iterator operator++(int) {
-            Node<T> n = i;
-            i++;
-            return n;
+            ++m_node;
+            return *this;
         }
         
         Iterator &operator--() {
-            i--;
+           if (m_node != nullptr)
+                m_node = m_node -> prev;
             return *this;
         }
 
         Iterator operator--(int) {
-            Node<T> n = i;
-            i--;
+            Node<T> n = m_node;
+            m_node--;
             return n;
         }
 
         Iterator &operator-=(int j) {
-            i-=j; return *this; }
+            m_node-=j; return *this;
+        }
 
         Iterator &operator+=(int j) { 
-            i+=j; return *this; }
+           m_node+=j; return *this;
+        }
 
         Iterator operator+(int j) const { 
-            return Iterator(i+j); }
+            return Iterator(m_node +j);
+        }
+
 
         Iterator operator-(int j) const { 
-            return Iterator(i-j); }
+            return Iterator(m_node -j);
+        }
 
         int operator-(Iterator j) const { 
-            return int(i - j.i); }
+            return int(m_node - j.m_node );
+        }
     };
 
 
     Iterator  begin() {
-       return Iterator(first);
+       return Iterator(this, first);
     }
 
     Iterator end() {
-        return Iterator(last);
+        return Iterator(this, last).next_it();
     }
 
-  //  T GetNode(int index) {
-  //      if((index >= 0) && (index < lenght)) {
-  //          throw std::out_of_range("Incorrect index");
-  //      }
-  //      Node<T> *el = ReturnEl(index);
-  //      return el -> data;
-  //  }
 
     T GetNode(int index){
-        if((index >= 0) && (index < lenght)) {
+        if((index < 0) && (index >= lenght)) {
             throw std::out_of_range("Incorrect index");
         }
-        size_t s;
-        for(BidirList<int>::Iterator it = begin(); it != end(); it++) {
+        size_t s = 0;
+        for(BidirList<T>::Iterator it = this -> begin(); it != this -> end(); ++it) {
             s++;
             if (s == index) return *it;
         }
-        return first;
+        return first->data;
     }
 
- //   void SetNode(T node_data, int index) {
- //        if((index >= 0) && (index < lenght)) {
- //            throw std::out_of_range("Incorrect index");
- //       }
- //       Node<T> *el = ReturnEl(index);
- //       el -> data = node_data;
- //  
- //   }
- 
+  
 
     void SetNode(T node_data, int index) {
-        if((index >= 0) && (index < lenght)) {
+        if((index < 0) && (index >= lenght)) {
              throw std::out_of_range("Incorrect index");
         }
-        size_t s;
-        Node<T> *el;
-        for(BidirList<int>::Iterator it = begin(); it != end(); it++) {
+        size_t s = 0;
+        for(BidirList<T>::Iterator it = this -> begin(); it != this -> end(); ++it) {
             s++;
-            if (s == index) *el = *it;
+            if (s == index) *it = node_data;
         }
-        el -> data = node_data;
+       
+    }
 
+    bool IsNoEmpty() {
+        if (first == nullptr)
+            return 0;
+        else return 1;
     }
 
     void AddNodeToEnd(T node_data) {
@@ -252,101 +239,66 @@ public:
 
     }
     
-    void InsertNodeTo(T node_data, int index) {
-        if((index >= 0) && (index < lenght)) {
+    void InsertNodeTo(T node_data, Iterator it) {
+        if((it < begin()) && (it >= end())) {
             return;
         }
 
-        if(index == lenght) {
+        if(it == end()) {
             AddNodeToEnd(node_data);
             return;
         }
 
-        if (index == 0) {
+        if (it == begin()) {
             AddNodeToBegin(node_data);
             return;
         }
         
         try {
-            Node<T>* prev_item = ReturnEl(index - 1);
-            Node<T>* current_item = ReturnEl(index);
-            Node<T>* new_item = new Node<T>;
+            Node<T>* prev = it.m_node -> prev;
+            prev -> next = new Node<T>;
+            prev -> next -> data = node_data;
+            prev -> next -> next = it.m_node;
+            prev -> next -> prev = prev;
+            it.m_node -> prev = prev -> next;
+     
+         //  Node<T>* prev_item = it.m_node -> prev;
 
-            new_item -> data = node_data;
-            new_item -> next = current_item;
-            new_item -> prev = prev_item;
+         //  Node<T>* current_item = it.m_node;
+         //  Node<T>* new_item = new Node<T>;
 
-            prev_item -> next = new_item;
-            current_item -> prev = new_item;
+         //  new_item -> data = node_data;
+         //  new_item -> next = current_item;
+         //  new_item -> prev = prev_item;
 
-            lenght++;
+         //  prev_item -> next = new_item;
+         //  current_item -> prev = new_item;
+
+           lenght++;
         }
         catch(std::bad_alloc ex) {
                    std::cout << ex.what() << std::endl;
                }
     }
     
-    void DeleteNode(int index) {
-        if (lenght == 0)
-            return;
-
-        if((index >= 0) && (index < lenght)) {
-                    return;
-                }
-
-        Node<T>* current_item = ReturnEl(index);
-        Node<T>* prev_item = current_item -> prev;
-        Node<T>* next_item = current_item -> next;
-
-        if((lenght > 1) && (prev_item != nullptr)) {
-            prev_item -> next = next_item;
-        }
-        
-        if((lenght > 1) && (next_item != nullptr)) {
-            next_item -> prev = prev_item;
-        }
-        
-        if(index == 0) 
-            first = next_item;
-        
-        if(index == lenght - 1)
-            last = prev_item;
-
-        delete current_item;
-        lenght--;
-    }
-    
     void ClearList() {
-        int lenght_list = lenght;
-        for (int i = 0; i < lenght_list; i++)
-            DeleteNode(0);
-    }
-    
-    void PrintList() {
-        Node<T>* el = first;
-        for(int i = 0; i < lenght; i++) {
-            std::cout << el -> data << " ";
-            el = el -> next;
+        auto temp = first;
+        first = nullptr;
+        last = nullptr;
+        while(temp) {
+            auto removed = temp;
+            temp = temp -> next;
+            delete removed;
         }
-        std::cout << std::endl;
+
+        lenght = 0;
     }
     
+ 
     int LenghtOfList() {
         return lenght;
     }
 
-    template <class BidirIt> 
-    void reverse(BidirIt Ifirst, BidirIt Ilast) {
-        while (Ifirst != Ilast) {
-            --Ilast;
-            if(Ifirst == Ilast) 
-                break;
-            using std::swap;
-
-            swap(*Ifirst, *Ilast);
-            ++Ifirst;
-        }
-    }
 
 };
 
